@@ -75,6 +75,7 @@ interface GestorContextType {
   loadMesaItens: (mesaId: string) => Promise<MesaItem[]>
 
   // Vendas
+  vendas: Venda[]
   criarVenda: (data: {
     tipo: 'pdv' | 'mesa' | 'delivery'
     mesaId?: string
@@ -113,6 +114,7 @@ export function GestorProvider({ children }: { children: ReactNode }) {
   const [produtos, setProdutos] = useState<Produto[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [mesas, setMesas] = useState<Mesa[]>([])
+  const [vendas, setVendas] = useState<Venda[]>([])
   const [mesaItens, setMesaItens] = useState<Record<string, MesaItem[]>>({})
   
   const supabase = createClient()
@@ -128,7 +130,8 @@ export function GestorProvider({ children }: { children: ReactNode }) {
         categoriasRes,
         produtosRes,
         clientesRes,
-        mesasRes
+        mesasRes,
+        vendasRes
       ] = await Promise.all([
         supabase.from('modulos_config').select('*').single(),
         supabase.from('emitente').select('*').single(),
@@ -137,7 +140,8 @@ export function GestorProvider({ children }: { children: ReactNode }) {
         supabase.from('categorias').select('*').order('nome'),
         supabase.from('produtos').select('*').order('nome'),
         supabase.from('clientes').select('*').order('nome'),
-        supabase.from('mesas').select('*').order('numero')
+        supabase.from('mesas').select('*').order('numero'),
+        supabase.from('vendas').select('*').order('created_at', { ascending: false }).limit(100)
       ])
 
       if (modulosRes.data) setModulos(modulosRes.data)
@@ -148,6 +152,7 @@ export function GestorProvider({ children }: { children: ReactNode }) {
       if (produtosRes.data) setProdutos(produtosRes.data)
       if (clientesRes.data) setClientes(clientesRes.data)
       if (mesasRes.data) setMesas(mesasRes.data)
+      if (vendasRes.data) setVendas(vendasRes.data)
     } catch (error) {
       console.error('[v0] Erro ao carregar dados:', error)
     } finally {
@@ -479,6 +484,9 @@ export function GestorProvider({ children }: { children: ReactNode }) {
 
     if (itensError) throw itensError
 
+    // Add to local state
+    setVendas(prev => [venda, ...prev])
+
     // If mesa, update status and mark items as paid
     if (data.mesaId) {
       await supabase
@@ -545,6 +553,7 @@ export function GestorProvider({ children }: { children: ReactNode }) {
         addMesaItem,
         removeMesaItem,
         loadMesaItens,
+        vendas,
         criarVenda,
         refresh: loadAllData
       }}

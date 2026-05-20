@@ -278,9 +278,9 @@ export type VendaItem = Database['public']['Tables']['venda_itens']['Row']
 
 // Extended types with relations
 export type MesaItemWithProduto = MesaItem & {
-  produtos: Produto
+  produtos?: Produto | null
 }
 
 export type VendaItemWithProduto = VendaItem & {
-  produtos: Produto
+  produtos?: Produto | null
 }
