@@ -237,6 +237,7 @@ function EmitenteConfig() {
     ruc: '',
     razao_social: '',
     nome_fantasia: '',
+    logo: '',
     endereco_rua: '',
     endereco_numero: '',
     endereco_bairro: '',
@@ -247,6 +248,7 @@ function EmitenteConfig() {
     email: ''
   })
   const [saving, setSaving] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (emitente) {
@@ -254,6 +256,7 @@ function EmitenteConfig() {
         ruc: emitente.ruc || '',
         razao_social: emitente.razao_social || '',
         nome_fantasia: emitente.nome_fantasia || '',
+        logo: emitente.logo || '',
         endereco_rua: emitente.endereco_rua || '',
         endereco_numero: emitente.endereco_numero || '',
         endereco_bairro: emitente.endereco_bairro || '',
@@ -265,6 +268,21 @@ function EmitenteConfig() {
       })
     }
   }, [emitente])
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Imagem muito grande. Maximo 2MB')
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setForm({ ...form, logo: reader.result as string })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -296,6 +314,45 @@ function EmitenteConfig() {
         <CardDescription>Configure os dados da empresa para emissao de documentos fiscais</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Logo Upload */}
+        <div className="flex items-start gap-6">
+          <div className="space-y-2">
+            <Label>Logo da Empresa</Label>
+            <div className="flex items-center gap-4">
+              <div 
+                className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {form.logo ? (
+                  <img src={form.logo} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <Building2 className="h-8 w-8 text-muted-foreground" />
+                )}
+              </div>
+              <div className="space-y-2">
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                  Selecionar Imagem
+                </Button>
+                {form.logo && (
+                  <Button variant="ghost" size="sm" onClick={() => setForm({ ...form, logo: '' })}>
+                    Remover
+                  </Button>
+                )}
+                <p className="text-xs text-muted-foreground">PNG ou JPG, max 2MB</p>
+              </div>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg"
+              className="hidden"
+              onChange={handleLogoUpload}
+            />
+          </div>
+        </div>
+
+        <Separator />
+
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label>RUC da Empresa *</Label>
@@ -487,7 +544,7 @@ function ProdutosManager() {
       const data = {
         ...form,
         categoria_id: form.categoria_id || null,
-        area_preparo_id: form.area_preparo_id || null,
+        area_preparo_id: form.area_preparo_id === 'none' ? null : (form.area_preparo_id || null),
         moeda: 'PYG' as const,
         unidade_medida: 'un',
         marca: null,
@@ -630,7 +687,7 @@ function ProdutosManager() {
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma</SelectItem>
+                        <SelectItem value="none">Nenhuma</SelectItem>
                         {areasPreparo.map(a => (
                           <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
                         ))}
@@ -1236,27 +1293,53 @@ function PDVPage() {
 
 // ========== MESAS ==========
 function MesasGrid({ onSelectMesa }: { onSelectMesa: (mesa: Mesa) => void }) {
-  const { mesas, modulos } = useGestor()
+  const { mesas, modulos, addMesa } = useGestor()
+  const [showNovaMesa, setShowNovaMesa] = useState(false)
+  const [novaMesa, setNovaMesa] = useState({ numero: 0, nome: '', capacidade: 4 })
 
-  if (!modulos?.restaurante && !modulos?.controle_mesas) {
+  if (!modulos?.restaurante && !modulos?.controle_mesas && !modulos?.delivery && !modulos?.comandas) {
     return (
       <Card className="p-8 text-center">
         <p className="text-muted-foreground">
-          Ative o modulo de Restaurante ou Controle de Mesas para usar esta funcionalidade.
+          Ative o modulo de Restaurante, Delivery, Comandas ou Controle de Mesas para usar esta funcionalidade.
         </p>
       </Card>
     )
   }
 
-  const getStatusColor = (status: Mesa['status']) => {
+  const getStatusStyles = (status: Mesa['status']) => {
     switch (status) {
-      case 'livre': return 'bg-green-100 border-green-500 text-green-800'
-      case 'ocupada': return 'bg-red-100 border-red-500 text-red-800'
-      case 'reservada': return 'bg-yellow-100 border-yellow-500 text-yellow-800'
-      case 'conta': return 'bg-blue-100 border-blue-500 text-blue-800'
-      default: return 'bg-gray-100 border-gray-500 text-gray-800'
+      case 'livre': return { overlay: 'bg-green-500/70', badge: 'bg-green-500' }
+      case 'ocupada': return { overlay: 'bg-red-500/70', badge: 'bg-red-500' }
+      case 'reservada': return { overlay: 'bg-yellow-500/70', badge: 'bg-yellow-500' }
+      case 'conta': return { overlay: 'bg-blue-500/70', badge: 'bg-blue-500' }
+      default: return { overlay: 'bg-gray-500/70', badge: 'bg-gray-500' }
     }
   }
+
+  const handleAddMesa = async () => {
+    if (novaMesa.numero <= 0) {
+      toast.error('Numero da mesa deve ser maior que 0')
+      return
+    }
+    try {
+      await addMesa({
+        numero: novaMesa.numero,
+        nome: novaMesa.nome || `Mesa ${novaMesa.numero}`,
+        capacidade: novaMesa.capacidade,
+        status: 'livre',
+        posicao_x: 0,
+        posicao_y: 0
+      })
+      toast.success('Mesa criada!')
+      setShowNovaMesa(false)
+      setNovaMesa({ numero: 0, nome: '', capacidade: 4 })
+    } catch (error) {
+      toast.error('Erro ao criar mesa. Numero pode ja existir.')
+    }
+  }
+
+  const nextMesaNumber = mesas.length > 0 ? Math.max(...mesas.map(m => m.numero)) + 1 : 1
 
   return (
     <div className="space-y-4">
@@ -1269,23 +1352,81 @@ function MesasGrid({ onSelectMesa }: { onSelectMesa: (mesa: Mesa) => void }) {
           <Badge variant="outline" className="bg-red-100 text-red-800">
             Ocupada: {mesas.filter(m => m.status === 'ocupada').length}
           </Badge>
+          <Button onClick={() => { setNovaMesa({ ...novaMesa, numero: nextMesaNumber }); setShowNovaMesa(true) }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Mesa
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {mesas.map((mesa) => (
-          <button
-            key={mesa.id}
-            onClick={() => onSelectMesa(mesa)}
-            className={`p-4 rounded-lg border-2 transition-all hover:scale-105 ${getStatusColor(mesa.status)}`}
-          >
-            <div className="text-center">
-              <p className="text-2xl font-bold">{mesa.numero}</p>
-              <p className="text-sm capitalize">{mesa.status}</p>
-              <p className="text-xs">{mesa.capacidade} lugares</p>
+      {/* Dialog Nova Mesa */}
+      <Dialog open={showNovaMesa} onOpenChange={setShowNovaMesa}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Mesa</DialogTitle>
+            <DialogDescription>Configure os dados da nova mesa</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Numero da Mesa *</Label>
+              <Input
+                type="number"
+                value={novaMesa.numero}
+                onChange={(e) => setNovaMesa({ ...novaMesa, numero: Number(e.target.value) })}
+              />
             </div>
-          </button>
-        ))}
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input
+                value={novaMesa.nome}
+                onChange={(e) => setNovaMesa({ ...novaMesa, nome: e.target.value })}
+                placeholder={`Mesa ${novaMesa.numero}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Capacidade (lugares)</Label>
+              <Input
+                type="number"
+                value={novaMesa.capacidade}
+                onChange={(e) => setNovaMesa({ ...novaMesa, capacidade: Number(e.target.value) })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNovaMesa(false)}>Cancelar</Button>
+            <Button onClick={handleAddMesa}>Criar Mesa</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {mesas.map((mesa) => {
+          const styles = getStatusStyles(mesa.status)
+          return (
+            <button
+              key={mesa.id}
+              onClick={() => onSelectMesa(mesa)}
+              className="relative aspect-square rounded-xl overflow-hidden shadow-lg transition-all hover:scale-105 hover:shadow-xl group"
+            >
+              {/* Background Image */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: 'url(/mesa-bg.jpg)' }}
+              />
+              {/* Overlay */}
+              <div className={`absolute inset-0 ${styles.overlay} transition-opacity group-hover:opacity-90`} />
+              {/* Content */}
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-white p-4">
+                <div className={`px-3 py-1 rounded-full text-xs font-semibold mb-2 ${styles.badge}`}>
+                  {mesa.status.toUpperCase()}
+                </div>
+                <p className="text-3xl font-bold drop-shadow-lg">{mesa.numero}</p>
+                <p className="text-sm font-medium drop-shadow">{mesa.nome || `Mesa ${mesa.numero}`}</p>
+                <p className="text-xs opacity-80">{mesa.capacidade} lugares</p>
+              </div>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

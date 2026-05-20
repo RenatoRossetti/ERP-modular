@@ -65,6 +65,7 @@ interface GestorContextType {
 
   // Mesas
   mesas: Mesa[]
+  addMesa: (data: Omit<Mesa, 'id' | 'created_at' | 'updated_at'>) => Promise<Mesa>
   updateMesaStatus: (id: string, status: Mesa['status']) => Promise<void>
 
   // Mesa Itens
@@ -332,6 +333,17 @@ export function GestorProvider({ children }: { children: ReactNode }) {
   }
 
   // Mesas
+  const addMesa = async (data: Omit<Mesa, 'id' | 'created_at' | 'updated_at'>) => {
+    const { data: newData, error } = await supabase
+      .from('mesas')
+      .insert(data)
+      .select()
+      .single()
+    if (error) throw error
+    setMesas([...mesas, newData].sort((a, b) => a.numero - b.numero))
+    return newData
+  }
+
   const updateMesaStatus = async (id: string, status: Mesa['status']) => {
     const { error } = await supabase
       .from('mesas')
@@ -527,6 +539,7 @@ export function GestorProvider({ children }: { children: ReactNode }) {
         updateCliente,
         buscarClientePorRuc,
         mesas,
+        addMesa,
         updateMesaStatus,
         mesaItens,
         addMesaItem,
