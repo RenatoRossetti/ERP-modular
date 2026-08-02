@@ -1,33 +1,207 @@
-# ERP-modular-
+# ERP Management System
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+Sistema ERP desenvolvido para gerenciamento empresarial, oferecendo módulos para controle de clientes, produtos, vendas, estoque, financeiro e relatórios.
 
-## Built with v0
+## 🚀 Tecnologias
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+- Next.js
+- TypeScript
+- React
+- Tailwind CSS
+- Axios
+- REST API
+- Git & GitHub
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_sb0vzsfgQuaTIhZbmiCqxt3t7JcG)
+---
 
-## Getting Started
+## 📋 Funcionalidades
 
-First, run the development server:
+- Cadastro de Clientes
+- Cadastro de Produtos
+- Controle de Estoque
+- Gestão de Vendas
+- Controle Financeiro
+- Relatórios
+- Dashboard
+- Autenticação de Usuários
+- Configurações do Sistema
+
+---
+
+## 📦 Requisitos
+
+- Node.js 18+
+- npm ou yarn
+- Git
+
+---
+
+## ⚙️ Executando o projeto localmente
+
+### Clonar o repositório
+
+```bash
+git clone https://github.com/RenatoRossetti/ERP-modular.git
+```
+
+### Entrar na pasta
+
+```bash
+cd nome-do-projeto
+```
+
+### Instalar dependências
+
+```bash
+npm install
+```
+
+ou
+
+```bash
+yarn
+```
+
+### Executar ambiente de desenvolvimento
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ou
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+yarn dev
+```
 
-## Learn More
+O projeto estará disponível em:
 
-To learn more, take a look at the following resources:
+```
+http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
+---
+
+## 🏗️ Build de produção
+
+```bash
+npm run build
+```
+
+Executar:
+
+```bash
+npm start
+```
+
+---
+
+## 📂 Estrutura do Projeto
+
+```
+src/
+ ├── app/
+ ├── components/
+ ├── hooks/
+ ├── layouts/
+ ├── pages/
+ ├── services/
+ ├── styles/
+ ├── types/
+ └── utils/
+```
+
+---
+
+## 🔄 Git
+
+### Clonar
+
+```bash
+git clone https://github.com/RenatoRossetti/ERP-modular.git
+```
+
+### Atualizar repositório
+
+```bash
+git pull origin development
+```
+
+### Criar nova branch
+
+```bash
+git checkout -b feature/nova-feature
+```
+
+### Verificar alterações
+
+```bash
+git status
+```
+
+### Adicionar arquivos
+
+```bash
+git add .
+```
+
+### Criar commit
+
+```bash
+git commit -m "Descrição das alterações"
+```
+
+### Enviar alterações
+
+```bash
+git push origin feature/nova-feature
+```
+
+---
+
+## 📄 Scripts
+
+```bash
+npm run dev
+```
+
+Inicia o servidor de desenvolvimento.
+
+```bash
+npm run build
+```
+
+Gera a versão de produção.
+
+```bash
+npm run start
+```
+
+Executa a aplicação em produção.
+
+```bash
+npm run lint
+```
+
+Executa a análise de código.
+
+---
+
+## 📌 Padrões do Projeto
+
+- TypeScript
+- Componentização
+- Código limpo
+- Responsividade
+- Boas práticas de React
+- Arquitetura escalável
+
+---
+
+## 👨‍💻 Autor
+
+Desenvolvido por **Renato Rossetti**.
+
+```
+
+Esse README é limpo e profissional para um projeto no GitHub, contendo apenas as informações essenciais: descrição, tecnologias, instalação, comandos Git, scripts e estrutura do projeto.
